@@ -1,0 +1,6 @@
+{
+    "model_file": "generalized_meta_model_v3_balanced.pkl",
+    "selected_threshold": 0.35,
+    "vit_accuracy": 0.864,
+    "vit_failure_recall": 0.743
+}
