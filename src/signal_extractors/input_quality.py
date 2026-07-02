@@ -37,31 +37,99 @@ class InputQualityExtractor(ReliabilitySignalExtractor):
         if image is None:
             raise ValueError("Original image required.")
 
-        if len(image.shape) == 3:
+        # ---------------------------------------------------
+        # Convert RGB to Gray if needed
+        # ---------------------------------------------------
+
+        if image.ndim == 3:
             gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
         else:
             gray = image.copy()
 
+        # ---------------------------------------------------
+        # Ensure uint8 image
+        # ---------------------------------------------------
+
+        if gray.dtype != np.uint8:
+
+            # If image is normalized (0-1)
+            if gray.max() <= 1.0:
+                gray = gray * 255.0
+
+            gray = np.clip(gray, 0, 255).astype(np.uint8)
+
+        # ---------------------------------------------------
+        # Debug Information
+        # ---------------------------------------------------
+
+        print("\n========== INPUT QUALITY DEBUG ==========")
+        print(f"Shape      : {gray.shape}")
+        print(f"Dtype      : {gray.dtype}")
+        print(f"Min Pixel  : {gray.min()}")
+        print(f"Max Pixel  : {gray.max()}")
+
+        # ---------------------------------------------------
+        # Brightness
+        # ---------------------------------------------------
+
         brightness = np.mean(gray)
+
+        # ---------------------------------------------------
+        # Contrast
+        # ---------------------------------------------------
 
         contrast = np.std(gray)
 
-        histogram = cv2.calcHist([gray],[0],None,[256],[0,256])
+        # ---------------------------------------------------
+        # Image Entropy
+        # ---------------------------------------------------
+
+        histogram = cv2.calcHist(
+            [gray],
+            [0],
+            None,
+            [256],
+            [0, 256]
+        )
+
         histogram = histogram / histogram.sum()
 
         image_entropy = -np.sum(
             histogram * np.log2(histogram + 1e-12)
         )
 
-        laplacian = cv2.Laplacian(gray, cv2.CV_64F)
+        # ---------------------------------------------------
+        # Laplacian Variance (Blur)
+        # ---------------------------------------------------
 
-        laplacian_variance = laplacian.var()
+        try:
+
+            laplacian = cv2.Laplacian(
+                gray,
+                cv2.CV_32F
+            )
+
+            laplacian_variance = float(laplacian.var())
+
+        except Exception as e:
+
+            print("Laplacian Error:", e)
+
+            laplacian_variance = 0.0
 
         blur_score = laplacian_variance
 
-        edges = cv2.Canny(gray,100,200)
+        # ---------------------------------------------------
+        # Edge Density
+        # ---------------------------------------------------
 
-        edge_density = np.mean(edges > 0)
+        edges = cv2.Canny(gray, 100, 200)
+
+        edge_density = float(np.mean(edges > 0))
+
+        # ---------------------------------------------------
+        # Return Signals
+        # ---------------------------------------------------
 
         return {
 
@@ -76,4 +144,5 @@ class InputQualityExtractor(ReliabilitySignalExtractor):
             "laplacian_variance": float(laplacian_variance),
 
             "edge_density": float(edge_density)
+
         }
