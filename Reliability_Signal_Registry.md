@@ -12,7 +12,7 @@ This document maintains the complete list of reliability signals extracted by th
 |---------|--------|-------------|
 | Confidence Score | ✅ Implemented | Maximum predicted probability. |
 | Entropy | ✅ Implemented | Prediction uncertainty. |
-| Prediction Margin | ⏳ Planned | Difference between top-1 and top-2 probabilities. |
+| Prediction Margin | ✅ Implemented| Difference between top-1 and top-2 probabilities. |
 
 ---
 
