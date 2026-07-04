@@ -2,9 +2,12 @@
 =========================================================
 UAIRE - Universal AI Reliability Engine
 
-Universal Reliability Dataset Generator (URDG)
+Universal Reliability Dataset Generator
 
-Generates one reliability profile per sample.
+Version 2
+
+Uses the UAIRE Pipeline instead of manually calling
+individual extractors.
 =========================================================
 """
 
@@ -13,10 +16,9 @@ import pandas as pd
 
 class ReliabilityDatasetGenerator:
 
-    def __init__(self, extractors):
+    def __init__(self, pipeline):
 
-        self.extractors = extractors
-
+        self.pipeline = pipeline
         self.rows = []
 
     def process_sample(
@@ -24,27 +26,40 @@ class ReliabilityDatasetGenerator:
         model,
         input_tensor,
         output,
-        label,
-        **kwargs
+        activations,
+        gradients,
+        image,
+        label
     ):
 
-        sample = {}
+        # ----------------------------------------------------
+        # Extract all reliability features
+        # ----------------------------------------------------
 
-        for extractor in self.extractors:
+        sample = self.pipeline.extract(
 
-            signals = extractor.extract(
-                model=model,
-                input_tensor=input_tensor,
-                output=output,
-                **kwargs
-            )
+            model=model,
 
-            sample.update(signals)
+            input_tensor=input_tensor,
+
+            output=output,
+
+            activations=activations,
+
+            gradients=gradients,
+
+            image=image
+
+        )
+
+        # ----------------------------------------------------
+        # Prediction Information
+        # ----------------------------------------------------
 
         prediction = output.argmax(dim=1).item()
 
         sample["prediction"] = prediction
-        sample["true_label"] = label
+        sample["true_label"] = int(label)
         sample["failure_label"] = int(prediction != label)
 
         self.rows.append(sample)
@@ -59,4 +74,9 @@ class ReliabilityDatasetGenerator:
 
         df.to_csv(path, index=False)
 
-        print(f"Saved {len(df)} samples to {path}")
+        print("=" * 60)
+        print("Reliability Dataset Saved Successfully")
+        print("=" * 60)
+        print(f"Samples : {len(df)}")
+        print(f"Features: {len(df.columns)}")
+        print(f"Saved to: {path}")
