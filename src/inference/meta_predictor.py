@@ -10,17 +10,25 @@ will fail.
 =========================================================
 """
 
+
+
+
+from pathlib import Path
 import joblib
 import pandas as pd
 
 
 class MetaPredictor:
 
-    def __init__(
-        self,
-        model_path="../models/uaire_meta_model.pkl",
-        feature_order_path="../models/uaire_feature_order.pkl"
-    ):
+    def __init__(self):
+
+        from src.config.paths import (
+            UAIRE_META_MODEL,
+            UAIRE_FEATURE_ORDER,
+        )
+
+        model_path = UAIRE_META_MODEL
+        feature_order_path = UAIRE_FEATURE_ORDER
 
         self.meta_model = joblib.load(model_path)
 
