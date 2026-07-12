@@ -1,0 +1,34 @@
+.metric-card{
+    background:#1A1D24;
+    border-radius:16px;
+    padding:18px;
+    text-align:center;
+    border:1px solid #30363d;
+    box-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+
+.metric-title{
+    font-size:16px;
+    color:#9CA3AF;
+    margin-bottom:10px;
+}
+
+.metric-value{
+    font-size:30px;
+    font-weight:700;
+    color:white;
+}
+
+.reason-card{
+    background:#182028;
+    border-left:6px solid #22c55e;
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:8px;
+}
+
+.section-title{
+    font-size:24px;
+    font-weight:bold;
+    margin-bottom:10px;
+}

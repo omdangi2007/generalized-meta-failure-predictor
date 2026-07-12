@@ -9,209 +9,135 @@ from PIL import Image
 
 from src.inference.predictor import UAIREPredictor
 
-# -----------------------------------------------------
+# ----------------------------------------------------------
 # Page Config
-# -----------------------------------------------------
+# ----------------------------------------------------------
 
 st.set_page_config(
-
     page_title="UAIRE",
-
     page_icon="🛡️",
-
-    layout="wide"
-
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-# -----------------------------------------------------
-# Title
-# -----------------------------------------------------
+# ----------------------------------------------------------
+# Custom CSS
+# ----------------------------------------------------------
 
-st.title("🛡️ UAIRE")
+st.markdown("""
+<style>
 
-st.subheader("Universal AI Reliability Engine")
+.main{
+    background:#0E1117;
+}
 
-st.markdown(
+.block-container{
+    padding-top:2rem;
+}
+
+.metric-card{
+    background:#1A1D24;
+    border-radius:15px;
+    padding:20px;
+    text-align:center;
+    border:1px solid #2E3440;
+}
+
+.metric-title{
+    font-size:18px;
+    color:#AAB2BF;
+}
+
+.metric-value{
+    font-size:32px;
+    font-weight:bold;
+    color:white;
+}
+
+.section-title{
+    font-size:26px;
+    font-weight:bold;
+    color:white;
+    margin-top:20px;
+}
+
+.reason-card{
+    background:#182028;
+    padding:12px;
+    border-radius:12px;
+    margin-bottom:10px;
+    border-left:6px solid #22C55E;
+}
+
+.status-card{
+    background:#182028;
+    padding:15px;
+    border-radius:12px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# ----------------------------------------------------------
+# Sidebar
+# ----------------------------------------------------------
+
+st.sidebar.title("🛡️ UAIRE")
+
+st.sidebar.markdown(
 """
-Predict **how reliable an AI model's prediction is**
-using confidence, activation statistics,
-gradient statistics, input quality,
-and Out-of-Distribution detection.
+Universal AI Reliability Engine
 """
 )
 
-st.divider()
+st.sidebar.divider()
 
-# -----------------------------------------------------
+uploaded_file = st.sidebar.file_uploader(
+    "📤 Upload Image",
+    type=["png","jpg","jpeg"]
+)
+
+model_name = st.sidebar.selectbox(
+    "🧠 Backbone",
+    [
+        "ResNet18 (Supported)"
+    ]
+)
+
+mode = st.sidebar.radio(
+    "📊 Analysis Mode",
+    [
+        "Basic",
+        "Advanced"
+    ]
+)
+
+st.sidebar.divider()
+
+st.sidebar.success("✅ AI Model Ready")
+st.sidebar.success("✅ Meta Model Ready")
+st.sidebar.success("✅ Reliability Engine Ready")
+st.sidebar.success("✅ OOD Detector Ready")
+
+# ----------------------------------------------------------
 # Load Predictor
-# -----------------------------------------------------
+# ----------------------------------------------------------
 
 @st.cache_resource
 def load_predictor():
 
     return UAIREPredictor()
 
-
 predictor = load_predictor()
 
-# -----------------------------------------------------
-# Upload
-# -----------------------------------------------------
+# ----------------------------------------------------------
+# Header
+# ----------------------------------------------------------
 
-uploaded_file = st.file_uploader(
+st.title("🛡️ UAIRE Dashboard")
 
-    "Upload an Image",
-
-    type=["png","jpg","jpeg"]
-
+st.caption(
+    "Universal AI Reliability Engine"
 )
 
-# -----------------------------------------------------
-# Prediction
-# -----------------------------------------------------
-
-if uploaded_file:
-
-    image = Image.open(uploaded_file).convert("RGB")
-
-    st.image(
-
-        image,
-
-        width=350,
-
-        caption="Uploaded Image"
-
-    )
-
-    with st.spinner("Running UAIRE..."):
-
-        result = predictor.predict(image)
-
-    st.divider()
-
-    col1,col2,col3 = st.columns(3)
-
-    # -----------------------------------------
-    # Prediction
-    # -----------------------------------------
-
-    with col1:
-
-        st.metric(
-
-            "Prediction",
-
-            result["prediction"]["class"]
-
-        )
-
-        st.metric(
-
-            "Confidence",
-
-            f'{result["prediction"]["confidence"]:.2%}'
-
-        )
-
-    # -----------------------------------------
-    # Reliability
-    # -----------------------------------------
-
-    with col2:
-
-        st.metric(
-
-            "Reliability Score",
-
-            f'{result["reliability"]["score"]:.2f}%'
-
-        )
-
-        st.metric(
-
-            "Decision",
-
-            result["reliability"]["decision"]
-
-        )
-
-    # -----------------------------------------
-    # Failure
-    # -----------------------------------------
-
-    with col3:
-
-        st.metric(
-
-            "Failure Probability",
-
-            f'{result["reliability"]["failure_probability"]:.2%}'
-
-        )
-
-    st.divider()
-
-    # -------------------------------------------------
-    # Reasons
-    # -------------------------------------------------
-
-    st.header("Why?")
-
-    for reason in result["reasons"]:
-
-        st.success(reason)
-
-    st.divider()
-
-    # -------------------------------------------------
-    # OOD
-    # -------------------------------------------------
-
-    st.header("Out-of-Distribution Analysis")
-
-    col1,col2,col3 = st.columns(3)
-
-    with col1:
-
-        st.metric(
-
-            "MSP",
-
-            result["ood"]["msp"]
-
-        )
-
-    with col2:
-
-        st.metric(
-
-            "Energy",
-
-            result["ood"]["energy"]
-
-        )
-
-    with col3:
-
-        st.metric(
-
-            "Mahalanobis",
-
-            result["ood"]["mahalanobis"]
-
-        )
-
-    st.divider()
-
-    # -------------------------------------------------
-    # Signals
-    # -------------------------------------------------
-
-    st.header("Reliability Features")
-
-    st.dataframe(
-
-        result["signals"]
-
-    )
+st.divider()
