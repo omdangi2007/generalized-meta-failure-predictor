@@ -5,6 +5,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.append(str(PROJECT_ROOT))
 
 import streamlit as st
+import pandas as pd
 from PIL import Image
 
 from src.inference.predictor import UAIREPredictor
@@ -139,5 +140,198 @@ st.title("🛡️ UAIRE Dashboard")
 st.caption(
     "Universal AI Reliability Engine"
 )
+# ==========================================================
+# Image Upload & Prediction
+# ==========================================================
 
 st.divider()
+
+if uploaded_file is None:
+
+    st.info("👈 Upload an image from the sidebar.")
+
+    st.stop()
+
+image = Image.open(uploaded_file).convert("RGB")
+
+left, right = st.columns([1, 1])
+
+with left:
+
+    st.subheader("🖼 Uploaded Image")
+
+    st.image(
+        image,
+        use_container_width=True
+    )
+
+with right:
+
+    st.subheader("🧠 UAIRE Analysis")
+
+    with st.spinner("Running UAIRE..."):
+
+        result = predictor.predict(image)
+# ==========================================================
+# Prediction Metrics
+# ==========================================================
+
+st.divider()
+
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+
+    st.metric(
+
+        "Prediction",
+
+        result["prediction"]["class"]
+
+    )
+
+with col2:
+
+    st.metric(
+
+        "Confidence",
+
+        f"{result['prediction']['confidence']*100:.2f}%"
+
+    )
+
+with col3:
+
+    st.metric(
+
+        "Reliability",
+
+        f"{result['reliability']['score']:.2f}%"
+
+    )
+
+with col4:
+
+    st.metric(
+
+        "Failure Risk",
+
+        f"{result['reliability']['failure_probability']*100:.2f}%"
+
+    )
+
+# ==========================================================
+# Decision
+# ==========================================================
+
+st.divider()
+
+st.subheader("🛡 Reliability Decision")
+
+decision = result["reliability"]["decision"]
+
+if decision == "Highly Reliable":
+
+    st.success(decision)
+
+elif decision == "Reliable":
+
+    st.success(decision)
+
+elif decision == "Use With Caution":
+
+    st.warning(decision)
+
+else:
+
+    st.error(decision)
+
+
+# ==========================================================
+# Reasons
+# ==========================================================
+
+st.divider()
+
+st.subheader("💡 Why did UAIRE trust this prediction?")
+
+for reason in result["reasons"]:
+
+    st.success(reason)
+
+# ==========================================================
+# OOD Metrics
+# ==========================================================
+
+st.divider()
+
+st.subheader("🌍 Distribution Analysis")
+
+o1, o2, o3 = st.columns(3)
+
+with o1:
+
+    st.metric(
+
+        "MSP",
+
+        f"{result['ood']['msp']:.4f}"
+
+        if result["ood"]["msp"] is not None
+
+        else "N/A"
+
+    )
+
+with o2:
+
+    st.metric(
+
+        "Energy",
+
+        f"{result['ood']['energy']:.4f}"
+
+        if result["ood"]["energy"] is not None
+
+        else "N/A"
+
+    )
+
+with o3:
+
+    st.metric(
+
+        "Mahalanobis",
+
+        f"{result['ood']['mahalanobis']:.4f}"
+
+        if result["ood"]["mahalanobis"] is not None
+
+        else "N/A"
+
+    )
+# ==========================================================
+# Advanced Mode
+# ==========================================================
+
+if mode == "Advanced":
+
+    st.divider()
+
+    st.subheader("📊 Reliability Features")
+
+    feature_df = pd.DataFrame(
+
+        result["signals"],
+
+        index=[0]
+
+    )
+
+    st.dataframe(
+
+        feature_df,
+
+        use_container_width=True
+
+    )
