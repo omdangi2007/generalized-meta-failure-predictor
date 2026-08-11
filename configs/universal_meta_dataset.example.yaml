@@ -1,0 +1,12 @@
+# Full research dataset build. Omit max_samples for every available test sample.
+output_dir: results/meta_dataset
+data_dir: data
+split: test
+batch_size: 32
+device: cpu
+num_workers: 0
+seed: 42
+max_samples: null
+download: false
+normalize: true
+# Omit combinations to use every discovered project-supported checkpoint pairing.

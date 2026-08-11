@@ -1,0 +1,17 @@
+# Run from MetaFailurePredictor:
+# python -m src.dataset_orchestration configs/reliability_dataset.example.yaml
+dataset: cifar10
+backbone: resnet18
+checkpoint: models/resnet18_cifar10.pth
+data_dir: data
+split: test
+batch_size: 32
+output_dir: results/reliability_datasets/cifar10_resnet18_test
+model_name: resnet18_cifar10
+device: cpu
+num_workers: 0
+seed: 42
+# Set for a smoke test; omit or set null for the full split.
+max_samples: 100
+download: false
+normalize: true
