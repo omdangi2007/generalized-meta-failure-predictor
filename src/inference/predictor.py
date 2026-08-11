@@ -20,16 +20,12 @@ import torch
 
 from PIL import Image
 
-from src.models.model_loader import (
-    load_resnet18_cifar10
-)
-
 from src.utils.image_preprocessor import (
     ImagePreprocessor
 )
 
-from src.utils.neural_state_collector import (
-    NeuralStateCollector
+from src.adapters.base_adapter import (
+    UniversalModelAdapter
 )
 
 from src.core.pipeline import (
@@ -87,71 +83,43 @@ class UAIREPredictor:
 
         model=None,
 
+        model_adapter=None,
+
+        target_layer=None,
+
         class_names=None
 
     ):
 
         # -------------------------------------------------
-        # Device
+        # Universal Model Adapter
         # -------------------------------------------------
 
-        if device is None:
+        if model_adapter is None:
 
-            device = (
+            if model is None:
 
-                "cuda"
+                raise ValueError(
+                    "UAIREPredictor now requires an external PyTorch model. "
+                    "Use UAIREPredictor(model=my_model)."
+                )
 
-                if torch.cuda.is_available()
-
-                else "cpu"
-
+            model_adapter = UniversalModelAdapter(
+                model=model,
+                device=device,
+                target_layer=target_layer,
             )
 
-        self.device = device
-
-        # -------------------------------------------------
-        # Load Backbone Model
-        # -------------------------------------------------
-
-        if model is None:
-
-            self.model = load_resnet18_cifar10(
-
-                device=device
-
-            )
-
-        else:
-
-            self.model = model
-
-        self.model.eval()
-
-        # -------------------------------------------------
-        # Target Layer
-        # -------------------------------------------------
-
-        self.target_layer = self.model.layer4[-1]
+        self.model_adapter = model_adapter
+        self.model = self.model_adapter.model
+        self.device = self.model_adapter.device
+        self.target_layer = self.model_adapter.target_layer
 
         # -------------------------------------------------
         # Image Preprocessor
         # -------------------------------------------------
 
         self.preprocessor = ImagePreprocessor()
-
-        # -------------------------------------------------
-        # Neural State Collector
-        # -------------------------------------------------
-
-        self.collector = NeuralStateCollector(
-
-            self.target_layer
-
-        )
-
-        # Register Hooks
-
-        self.collector.register_hooks()
 
         # -------------------------------------------------
         # UAIRE Pipeline
@@ -258,14 +226,9 @@ class UAIREPredictor:
 
     def _collect_states(self, input_tensor):
 
-        states = self.collector.collect(
-
-            model=self.model,
-
-            image=input_tensor,
-
+        states = self.model_adapter.collect(
+            input_tensor=input_tensor,
             compute_gradients=True
-
         )
 
         return states
@@ -547,7 +510,7 @@ class UAIREPredictor:
 
         try:
 
-            self.collector.remove_hooks()
+            self.model_adapter.cleanup()
 
         except Exception:
 
